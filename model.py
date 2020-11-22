@@ -1,6 +1,5 @@
 """
 Improvement ideas:
-- ignore X% of 0 steering items
 - Use recovery videos
 - Gather smoother steering input (mouse, wheel?)
 - Gauss smoothing of the road surface

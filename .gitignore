@@ -131,3 +131,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data_for_PR_of_accepted_branch.rar

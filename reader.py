@@ -3,7 +3,6 @@ import cfg
 import os
 import cv2
 import numpy as np
-import sklearn.utils
 from keras import preprocessing
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -33,39 +32,31 @@ def get_all_meta(first_dataset, last_dataset, check_files_exist=True, verbose=Fa
             count_possible, count_skipped_straight, count_ok = 0, 0, 0
             for line in reader:
                 center_img, left_img, right_img, angle, _, _, _ = line
-                angle = float(angle)
                 if angle == 0 and should_skip_zero_steering_item():
                     count_skipped_straight += 1
                     continue
+                angle = float(angle)
                 count_possible += 3
-                if (not check_files_exist) or (os.path.exists(center_img)):  # center image
-                    current_line_data = []
-                    current_line_data.append(line[0])
-                    current_line_data.append(angle)
-                    meta_db.append([*current_line_data])
+                # center image
+                if (not check_files_exist) or (os.path.exists(center_img)):
+                    meta_db.append([line[0], angle])
                     count_ok += 1
-                else:
-                    if verbose:
-                        print('File missing:', line[0])
-                if (not check_files_exist) or (os.path.exists(left_img)):  # left image
-                    current_line_data = []
-                    current_line_data.append(line[1])
-                    current_line_data.append(angle * cfg.camera_steer_multiplier + cfg.camera_steer_offset)
-                    meta_db.append([*current_line_data])
+                elif verbose:
+                    print('File missing:', line[0])
+                # left image
+                if (not check_files_exist) or (os.path.exists(left_img)):
+                    meta_db.append([line[1], angle * cfg.camera_steer_multiplier + cfg.camera_steer_offset])
                     count_ok += 1
-                else:
-                    if verbose:
-                        print('File missing:', line[1])
-                if (not check_files_exist) or (os.path.exists(right_img)):  # right image
-                    current_line_data = []
-                    current_line_data.append(line[2])
-                    current_line_data.append(angle * cfg.camera_steer_multiplier - cfg.camera_steer_offset)
-                    meta_db.append([*current_line_data])
+                elif verbose:
+                    print('File missing:', line[1])
+                # right image
+                if (not check_files_exist) or (os.path.exists(right_img)):
+                    meta_db.append([line[2], angle * cfg.camera_steer_multiplier - cfg.camera_steer_offset])
                     count_ok += 1
-                else:
-                    if verbose:
-                        print('File missing:', line[2])
-            print('done. From {} skipped {}, read {} items successfully.{}'.format(count_possible, count_skipped_straight, count_ok, ' Images checked for existence.' if check_files_exist else ''))
+                elif verbose:
+                    print('File missing:', line[2])
+            print('done. From {} skipped {}, read {} items successfully.{}'.format(count_possible,
+                count_skipped_straight, count_ok, ' Images checked for existence.' if check_files_exist else ''))
     print('Total valid items explored:', len(meta_db))
     return meta_db
 
