@@ -1,15 +1,13 @@
 """
 Improvement ideas:
-- Use screenshots from several runs
+- ignore X% of 0 steering items
 - Use recovery videos
-- Use reverse videos
 - Gather smoother steering input (mouse, wheel?)
 - Gauss smoothing of the road surface
 - CLAHE
 - HSL: emphasize colors
 - nVidia algorithm
 - Add throttle / brake
-- If too much input: use a generator function with with .fit_generator()
 """
 
 import os
@@ -19,21 +17,17 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Conv2D, MaxPool2D, Activation, Dropout, Cropping2D
 import matplotlib.pyplot as plt
-import data_manip
+from sklearn.model_selection import train_test_split
+import math
 
 
-if cfg.GPU:
+if cfg.use_gpu:
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 else:
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
-def show_img(image):
-    plt.imshow(image)
-    plt.show()
-
-
-def build_model(x, y):
+def build_model():
     model = Sequential()
     model.add(Cropping2D(((30, 20), (0, 0)), input_shape=(160, 320, 3)))
     model.add(Lambda(lambda x: x / 255.0 - 0.5))
@@ -55,20 +49,34 @@ def build_model(x, y):
     model.add(Dense(1))
 
     model.compile(loss='mse', optimizer='adam')
-    model.fit(x, y, validation_split=0.2, shuffle=True, epochs=2)
-    model.save(cfg.path_model)
+    model.summary(line_length=160)
+    return model
 
 
 def main(first_dataset, last_dataset, verbose=False):
-    X_train, y_train = reader.read_datasets(first_dataset, last_dataset, verbose=verbose)
-    X_train, y_train = data_manip.preprocess(X_train, y_train)
+    meta_db = reader.get_all_meta(first_dataset, last_dataset, check_files_exist=True)
+    train_meta, valid_meta = train_test_split(meta_db, test_size=cfg.test_size, shuffle=True)
+    train_generator = reader.generator(train_meta, batch_size=cfg.batch_size)
+    validation_generator = reader.generator(valid_meta, batch_size=cfg.batch_size)
+    # X_train, y_train = preprocess(X_train, y_train)
 
     if verbose:
-        data_manip.show_example(X_train, y_train, start_index=0, columns=3, second_row_offset=len(X_train) // 2)
+        pass # show_example(X_train, y_train, start_index=0, columns=3, second_row_offset=len(X_train) // 2)
 
-    build_model(X_train, y_train)
+    datagen_mult = cfg.datagen_item_multiplier if cfg.enable_datagen else 1.0
+
+    model = build_model()
+    model.fit_generator(
+        generator=train_generator,
+        steps_per_epoch=cfg.generator_new_item_multiplier * datagen_mult * math.ceil(len(train_meta) // cfg.batch_size),
+        validation_data=validation_generator,
+        validation_steps=cfg.generator_new_item_multiplier *  datagen_mult * math.ceil(len(valid_meta) // cfg.batch_size),
+        epochs=cfg.epochs,
+        verbose=1
+    )
+    model.save(cfg.model_rel_path)
 
 
 if __name__ == '__main__':
-    main(first_dataset=1, last_dataset=4, verbose=False)
+    main(first_dataset=cfg.first_dataset, last_dataset=cfg.last_dataset + 1, verbose=False)
 
