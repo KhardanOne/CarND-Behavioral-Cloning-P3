@@ -69,7 +69,7 @@ The last layer contains only a single node, which provides the steering angle.
 
 #### 2. Attempts to reduce overfitting in the model
 
-This model is much bigger than neccessary. The evidence is that the training accuracy becomes lover than the validation accuracy as soon as the 2nd epoch. This is a clear sign of overtraining. Possible solutions:
+This model is much bigger than neccessary. The evidence is that the training accuracy becomes higher than the validation accuracy as soon as the 2nd epoch. This is a clear sign of overtraining. Possible solutions:
 * Feed it with more data
 * Use dropout
 * Lessen the network size
@@ -79,9 +79,9 @@ Because the model drove the car well, I decided to lessen the epochs to only 2. 
 
 #### 3. Model parameter tuning
 
-The model used an Adam optimizer, so the learning rate was not tuned manually (model.py line 57).
+The model uses an Adam optimizer, so the learning rate was tuned by that (model.py line 57).
 
-This is more or less my first iteration, and as it worked well, I didn't fine tune it too much. I tuned:
+This is more or less my first iteration, and as it worked well, I didn't fine tune it too much. I tuned only the following:
 * the number of epochs to decrease overtraining,
 * the dropout from the same reason
 * and the steering offset of left and right image input in order to balance between nervous wobbling of the car and unabilty to steear strong.
