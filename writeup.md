@@ -59,9 +59,9 @@ I used Tensorflow 2.3.1 with Keras 2.4.3. It should work well also inside Udacit
 
 My model starts with image cropping and normalization (model.py lines 38-39) 
 
-They are followed by 3 convolution layers rangind from 7 * 7 to 3 * 3 kernel sizes, interspersed with max-pooling with 4 * 4 kernel sizes and RELUs. The very first convolitional layer uses 2 * 2 stride to decrease the size (model.py lines 40-48).
+They are followed by 3 convolution layers ranging from 7 * 7 to 3 * 3 kernel sizes, interspersed with max-pooling with 4 * 4 kernel sizes and RELUs. The very first convolitional layer uses 2 * 2 stride to decrease the size (model.py lines 40-48).
 
-After flattening the resulting width of the fully connected layer is 12800. After a Dropout layer of 0.3 other two fully connected layers come with RELUs.
+After the flattening step the resulting width of the fully connected layer is 1280. After a Dropout layer of 0.3 other two fully connected layers come with RELUs.
 
 The last layer contains only a single node, which provides the steering angle.
 
